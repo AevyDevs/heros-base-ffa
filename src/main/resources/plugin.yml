@@ -1,0 +1,16 @@
+name: BaseFFA
+version: 1.0.0
+author: Sorridi
+load: STARTUP
+main: net.herospvp.base_ffa.Main
+depend:
+  - PlaceholderAPI
+  - ActionBarAPI
+commands:
+  spawn:
+  notifiche:
+    aliases: [not]
+  message:
+    aliases: [m, msg, w, write]
+  reply:
+    aliases: [r]
