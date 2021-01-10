@@ -2,6 +2,7 @@ package net.herospvp.base_ffa.configuration;
 
 import lombok.Getter;
 import net.herospvp.base_ffa.Main;
+import net.herospvp.base_ffa.Memory;
 import net.herospvp.base_ffa.database.Hikari;
 import org.bukkit.Bukkit;
 
@@ -20,7 +21,7 @@ public class DatabaseConfiguration {
 
         Bukkit.getScheduler().runTaskAsynchronously(Main.getMain(), () -> {
             try {
-                Main.setHikari(new Hikari(ip, port, database, table, user, password));
+                Memory.setHikari(new Hikari(ip, port, database, table, user, password));
             } catch (Exception e) {
                 e.printStackTrace();
             }

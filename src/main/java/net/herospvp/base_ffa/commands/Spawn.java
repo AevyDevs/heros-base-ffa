@@ -1,6 +1,6 @@
 package net.herospvp.base_ffa.commands;
 
-import net.herospvp.base_ffa.Main;
+import net.herospvp.base_ffa.Memory;
 import net.herospvp.base_ffa.configuration.WorldConfiguration;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -20,8 +20,8 @@ public class Spawn implements CommandExecutor {
         player.teleport(WorldConfiguration.getSpawnPoint());
 
         player.getInventory().clear();
-        Main.getKit().setPlayerArmor(player);
-        Main.getKit().setPlayerHotBar(player);
+        Memory.getKit().setPlayerArmor(player);
+        Memory.getKit().setPlayerHotBar(player);
 
         return false;
     }

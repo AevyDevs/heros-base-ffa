@@ -31,6 +31,11 @@ public class Reply implements CommandExecutor {
 
         Player target = RAM.getLastMessageFrom().get(player);
 
+        if (RAM.wantsNoMsg(target)) {
+            player.sendMessage(ChatColor.RED + "Mi spiace, " + target.getName() + " ignora i messaggi privati!");
+            return false;
+        }
+
         StringBuilder stringBuilder = new StringBuilder();
         for (String string : strings) {
             stringBuilder.append(string);

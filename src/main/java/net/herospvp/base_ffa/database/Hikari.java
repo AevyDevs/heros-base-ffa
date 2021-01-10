@@ -4,8 +4,6 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.Getter;
 import net.herospvp.base_ffa.utils.StringFormat;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -64,12 +62,12 @@ public class Hikari {
                 Integer[] integers = new Integer[6];
                 
                 int j = 0;
-                for (int i = 2; i <= 7; i++) {
+                for (int i = 2; i < 8; i++) {
                     integers[j] = resultSet.getInt(i);
                     j++;
                 }
-                
-                RAM.setEveryData(Bukkit.getPlayer(playerName), integers);
+
+                RAM.setEveryData(playerName, integers);
             }
         } finally {
             close(connection, preparedStatement, resultSet);
@@ -89,26 +87,25 @@ public class Hikari {
         try {
             connection = dataSource.getConnection();
 
-            for (Map.Entry<Player, Integer[]> entry : RAM.getStoredPlayers().entrySet()) {
-                Player player = entry.getKey();
+            for (Map.Entry<String, Integer[]> entry : RAM.getStoredPlayers().entrySet()) {
+                String playerName = entry.getKey();
+                Integer[] integers = entry.getValue();
 
                 preparedStatement = connection.prepareStatement("SELECT * FROM " + table + " WHERE username = "
-                        + StringFormat.forMysql(player.getName()));
+                        + StringFormat.forMysql(playerName));
                 resultSet = preparedStatement.executeQuery();
 
                 if (!resultSet.next()) {
-                    Integer[] integers = new Integer[6];
-                    RAM.setEveryData(player, integers);
-
                     preparedStatement = connection.prepareStatement("INSERT INTO " + table
                             + " (username, kills, deaths, streak, noDeaths, noPings, noMsg) VALUES ("
-                            + StringFormat.forMysql(player.getName()) + ", 0, 0, 0, 0, 0, 0);");
+                            + StringFormat.forMysql(playerName) + ", " + integers[0] +
+                            ", " + integers[1] + ", " + integers[2] + ", " + integers[3] +
+                            ", " + integers[4] + ", " + integers[5] + ");");
                 } else {
                     preparedStatement = connection.prepareStatement("UPDATE " + table + " SET kills = ?, deaths = ?, " +
                             "streak = ?, noDeaths = ?, noPings = ?, noMsg = ? WHERE username = "
-                            + StringFormat.forMysql(player.getName()));
+                            + StringFormat.forMysql(playerName));
 
-                    Integer[] integers = entry.getValue();
                     int j = 0;
                     for (int i = 1; i < 7; i++) {
                         preparedStatement.setInt(i, integers[j]);

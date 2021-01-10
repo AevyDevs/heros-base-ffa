@@ -2,6 +2,7 @@ package net.herospvp.base_ffa.tasks;
 
 import lombok.Getter;
 import net.herospvp.base_ffa.Main;
+import net.herospvp.base_ffa.Memory;
 import org.bukkit.Bukkit;
 
 public class SaveData {
@@ -13,7 +14,7 @@ public class SaveData {
         this.repeatEvery = repeatEvery;
 
         Bukkit.getScheduler().scheduleAsyncRepeatingTask(Main.getMain(), () -> {
-            Main.getHikari().saveAll();
+            Memory.getHikari().saveAll();
         }, repeatEvery, repeatEvery);
     }
 

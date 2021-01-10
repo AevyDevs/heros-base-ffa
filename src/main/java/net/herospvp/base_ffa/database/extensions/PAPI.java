@@ -5,6 +5,8 @@ import net.herospvp.base_ffa.database.RAM;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.text.DecimalFormat;
+
 public class PAPI extends PlaceholderExpansion {
 
     public PAPI() {
@@ -46,7 +48,8 @@ public class PAPI extends PlaceholderExpansion {
             }
             case "kda": {
                 int deaths = RAM.getDeaths(player);
-                response = String.valueOf((float) (RAM.getKills(player) / (deaths == 0 ? 1 : deaths)));
+                DecimalFormat decimalFormat = new DecimalFormat("0.00");
+                response = decimalFormat.format((float) RAM.getKills(player) / (float) (deaths == 0 ? 1 : deaths));
                 break;
             }
             default: {

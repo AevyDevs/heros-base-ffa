@@ -19,10 +19,13 @@ public class WorldConfiguration {
     @Getter @Setter
     private static int repeatEvery = 60000;
     private static int counter = 0;
+    @Getter @Setter
+    private static int pvpDisabledOver = 0;
 
     public WorldConfiguration(String world, World[] worlds) {
         this.world = Bukkit.getWorld(world);
         this.worlds = worlds;
+        spawnPoint = this.world.getSpawnLocation();
         if (worlds != null) {
             Bukkit.getScheduler().scheduleSyncRepeatingTask(Main.getMain(), () -> {
 

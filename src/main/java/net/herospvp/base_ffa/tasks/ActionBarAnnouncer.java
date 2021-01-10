@@ -3,6 +3,7 @@ package net.herospvp.base_ffa.tasks;
 import com.connorlinfoot.actionbarapi.ActionBarAPI;
 import lombok.Getter;
 import net.herospvp.base_ffa.Main;
+import net.herospvp.base_ffa.utils.StringFormat;
 import org.bukkit.Bukkit;
 
 public class ActionBarAnnouncer {
@@ -20,9 +21,9 @@ public class ActionBarAnnouncer {
 
         Bukkit.getScheduler().scheduleSyncRepeatingTask(Main.getMain(), () -> {
 
-            ActionBarAPI.sendActionBarToAllPlayers(messages[counter], duration);
+            ActionBarAPI.sendActionBarToAllPlayers(StringFormat.translate(messages[counter]), duration);
 
-            counter = counter == messages.length ? 0 : counter++;
+            counter = counter == messages.length - 1 ? 0 : counter + 1;
 
         }, 0L, repeatEvery);
     }

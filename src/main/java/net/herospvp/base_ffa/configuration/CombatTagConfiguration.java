@@ -10,14 +10,14 @@ import java.util.Map;
 public class CombatTagConfiguration {
 
     @Getter @Setter
-    private static int duration = 0;
+    private static long duration = 6000;
     @Getter
     private static final Map<Player, Long> mapOfPlayersInCombat = new HashMap<>();
     @Getter
     private static final Map<Player, Player> lastHitter = new HashMap<>();
 
     public static boolean isOutOfCombat(Player player) {
-        return mapOfPlayersInCombat.get(player) > System.currentTimeMillis();
+        return ((mapOfPlayersInCombat.get(player) + duration) < System.currentTimeMillis());
     }
 
 }

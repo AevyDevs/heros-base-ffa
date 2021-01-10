@@ -25,14 +25,14 @@ public class Message implements CommandExecutor {
             return false;
         }
 
-        if (!RAM.getOnlinePlayerNames().contains(strings[1])) {
-            player.sendMessage(ChatColor.RED + strings[1] + " non e' online!");
+        if (!RAM.getOnlinePlayerNames().contains(strings[0])) {
+            player.sendMessage(ChatColor.RED + strings[0] + " non e' online!");
             return false;
         }
 
-        Player target = Bukkit.getPlayer(strings[1]);
+        Player target = Bukkit.getPlayer(strings[0]);
 
-        if (!RAM.wantsNoMsg(target)) {
+        if (RAM.wantsNoMsg(target)) {
             player.sendMessage(ChatColor.RED + "Mi spiace, " + target.getName() + " ignora i messaggi privati!");
             return false;
         }

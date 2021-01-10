@@ -1,6 +1,8 @@
 package net.herospvp.base_ffa.events;
 
+import net.herospvp.base_ffa.Memory;
 import net.herospvp.base_ffa.configuration.CombatTagConfiguration;
+import net.herospvp.base_ffa.configuration.WorldConfiguration;
 import net.herospvp.base_ffa.database.RAM;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -11,19 +13,20 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 public class CombatTagEvents implements Listener {
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void on(PlayerCommandPreprocessEvent event) {
         Player player = event.getPlayer();
 
-        if (CombatTagConfiguration.getMapOfPlayersInCombat().get(player) >= System.currentTimeMillis()) {
-            player.sendMessage(ChatColor.RED + "Non puoi eseguire comandi in combattimento!");
-            event.setCancelled(true);
+        if (CombatTagConfiguration.isOutOfCombat(player)) {
+            return;
         }
+
+        player.sendMessage(ChatColor.RED + "Non puoi eseguire comandi in combattimento!");
+        event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -36,6 +39,12 @@ public class CombatTagEvents implements Listener {
 
         Player damager = (Player) event.getDamager(), damaged = (Player) event.getEntity();
 
+        if (damager.getLocation().getY() >= WorldConfiguration.getPvpDisabledOver() ||
+                damaged.getLocation().getY() >= WorldConfiguration.getPvpDisabledOver()) {
+            event.setCancelled(true);
+            return;
+        }
+
         long time = System.currentTimeMillis();
         CombatTagConfiguration.getMapOfPlayersInCombat().replace(damager, time);
         CombatTagConfiguration.getMapOfPlayersInCombat().replace(damaged, time);
@@ -43,7 +52,7 @@ public class CombatTagEvents implements Listener {
         CombatTagConfiguration.getLastHitter().replace(damaged, damager);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void on(PlayerDeathEvent event) {
         Player player = event.getEntity();
 
@@ -54,34 +63,43 @@ public class CombatTagEvents implements Listener {
         event.setDeathMessage(null);
         event.getDrops().clear();
 
-        if (CombatTagConfiguration.getLastHitter().get(player) == null
-                || CombatTagConfiguration.isOutOfCombat(player)) {
+        if (CombatTagConfiguration.isOutOfCombat(player)) {
             return;
         }
 
+        Player killer = CombatTagConfiguration.getLastHitter().get(player);
+
+        if (killer == null) return;
+
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            if (RAM.wantsNoDeaths(onlinePlayer)) continue;
-            onlinePlayer.sendMessage(ChatColor.GREEN + player.getName() + " e' stato ucciso da " +
-                    CombatTagConfiguration.getLastHitter().get(player));
+            if (RAM.wantsNoDeaths(onlinePlayer) && player != onlinePlayer) continue;
+            onlinePlayer.sendMessage(ChatColor.RED + player.getName() + " e' stato ucciso da " +
+                    killer.getName());
         }
 
+        Memory.getKit().assignKillRewards(killer);
         RAM.addKills(CombatTagConfiguration.getLastHitter().get(player), 1);
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void on(PlayerJoinEvent event) {
-        CombatTagConfiguration.getMapOfPlayersInCombat().put(event.getPlayer(), 0L);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void on(PlayerQuitEvent event) {
         Player player = event.getPlayer();
 
-        if (CombatTagConfiguration.getMapOfPlayersInCombat().get(player) >= System.currentTimeMillis()) {
-            player.setHealth(0D);
+        if (CombatTagConfiguration.isOutOfCombat(player)) {
+            return;
+        }
+        Player killer = CombatTagConfiguration.getLastHitter().get(player);
+        RAM.addDeaths(player, 1);
+
+        if (killer == null) return;
+
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            if (RAM.wantsNoDeaths(onlinePlayer) && player != onlinePlayer) continue;
+            onlinePlayer.sendMessage(ChatColor.RED + player.getName() + " e' stato ucciso da " +
+                    killer.getName());
         }
 
-        CombatTagConfiguration.getMapOfPlayersInCombat().remove(player);
+        RAM.addKills(killer, 1);
     }
 
 }

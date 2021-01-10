@@ -1,6 +1,7 @@
 package net.herospvp.base_ffa.events;
 
 import org.bukkit.GameMode;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -29,15 +30,21 @@ public class WorldEvents implements Listener {
 
     @EventHandler
     public void on(BlockPlaceEvent event) {
-        if (event.getPlayer().getGameMode().equals(GameMode.CREATIVE)
-                && event.getPlayer().hasPermission("*")) return;
+        Player player = event.getPlayer();
+
+        if (player.getGameMode().equals(GameMode.CREATIVE) &&
+                (player.hasPermission("*") || player.isOp())) return;
+
         event.setCancelled(true);
     }
 
     @EventHandler
     public void on(BlockBreakEvent event) {
-        if (event.getPlayer().getGameMode().equals(GameMode.CREATIVE)
-                && event.getPlayer().hasPermission("*")) return;
+        Player player = event.getPlayer();
+        
+        if (player.getGameMode().equals(GameMode.CREATIVE) &&
+                (player.hasPermission("*") || player.isOp())) return;
+
         event.setCancelled(true);
     }
 

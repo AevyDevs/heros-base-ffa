@@ -2,6 +2,7 @@ package net.herospvp.base_ffa.configuration.kit;
 
 import lombok.Getter;
 import net.herospvp.base_ffa.Main;
+import net.herospvp.base_ffa.Memory;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -60,15 +61,37 @@ public class Kit {
     }
 
     public void assignPotionEffects(Player player) {
+
+        for (PotionEffect activePotionEffect : player.getActivePotionEffects()) {
+            player.removePotionEffect(activePotionEffect.getType());
+        }
+
         if (potionEffects == null) return;
 
         Bukkit.getScheduler().runTaskLater(Main.getMain(), () -> {
-            PotionEffect[] potionEffects = Main.getKit().getPotionEffects();
+            PotionEffect[] potionEffects = getPotionEffects();
 
             for (PotionEffect potionEffect : potionEffects) {
                 player.addPotionEffect(potionEffect);
             }
         }, 10L);
+    }
+
+    public void assignKillRewards(Player player) {
+        player.getInventory().setArmorContents(null);
+        setPlayerArmor(player);
+
+        for (ItemStack itemStack : player.getInventory()) {
+            if (itemStack == null) continue;
+
+            for (ItemStack stack : Memory.getKit().getArmor()) {
+
+                if (stack.getType().equals(itemStack.getType())) {
+                    player.getInventory().remove(itemStack);
+                }
+            }
+
+        }
     }
 
 }
