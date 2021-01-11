@@ -81,6 +81,10 @@ public class Kit {
         player.getInventory().setArmorContents(null);
         setPlayerArmor(player);
 
+        for (ItemStack itemStack : killRewards) {
+            player.getInventory().addItem(itemStack);
+        }
+
         for (ItemStack itemStack : player.getInventory()) {
             if (itemStack == null) continue;
 

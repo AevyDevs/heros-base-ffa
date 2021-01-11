@@ -72,6 +72,7 @@ public class PlayerEvents implements Listener {
         Player player = event.getPlayer();
 
         CombatTagConfiguration.getLastHitter().replace(player, null);
+        CombatTagConfiguration.getMapOfPlayersInCombat().replace(player, 0L);
 
         Memory.getKit().setPlayerHotBar(player);
         Memory.getKit().setPlayerArmor(player);
