@@ -109,12 +109,15 @@ public class PlayerEvents implements Listener {
         }
 
         event.setFormat(string);
-        event.setMessage(StringFormat.translate(event.getMessage()));
+        if (player.hasPermission("chatcolor")) {
+            event.setMessage(StringFormat.translate(event.getMessage()));
+        }
 
         for (String s : event.getMessage().split(" ")) {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 if (!p.getName().equalsIgnoreCase(s) || RAM.wantsNoPings(p)) continue;
                 p.playSound(p.getLocation(), Sound.CAT_MEOW, 1, 1);
+                return;
             }
         }
     }

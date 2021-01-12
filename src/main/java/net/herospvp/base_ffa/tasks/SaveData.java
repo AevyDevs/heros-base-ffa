@@ -13,8 +13,9 @@ public class SaveData {
     public SaveData(int repeatEvery) {
         this.repeatEvery = repeatEvery;
 
-        Bukkit.getScheduler().scheduleAsyncRepeatingTask(Main.getMain(), () -> {
-            Memory.getHikari().saveAll();
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(Main.getMain(), () -> {
+            Memory.getPlay().updateMirror(Memory.saveAll());
+            Memory.getPlay().start();
         }, repeatEvery, repeatEvery);
     }
 

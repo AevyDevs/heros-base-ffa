@@ -40,7 +40,8 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        Memory.getHikari().saveAll();
+        Memory.getPlay().updateMirror(Memory.saveAll());
+        Memory.getPlay().start();
     }
 
 }
