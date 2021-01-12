@@ -40,8 +40,8 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        Memory.getPlay().updateMirror(Memory.saveAll());
-        Memory.getPlay().start();
+        Memory.getMusician().updateMirror(Memory.saveAll());
+        Memory.getMusician().play();
     }
 
 }

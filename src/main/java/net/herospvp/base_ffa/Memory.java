@@ -29,8 +29,6 @@ public class Memory {
     @Getter @Setter
     private static Musician musician;
     @Getter @Setter
-    private static Musician.Play play;
-    @Getter @Setter
     private static String table;
 
     public static Papers init() {
