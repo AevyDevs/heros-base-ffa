@@ -1,0 +1,17 @@
+name: BaseFFA
+version: 2.0.0
+author: Sorridi
+main: net.herospvp.base.Base
+load: POSTWORLD
+depend:
+  - PlaceholderAPI
+  - Vault
+  - ActionBarAPI
+commands:
+  spawn:
+  notifiche:
+    aliases: [not]
+  reply:
+    aliases: [r]
+  message:
+    aliases: [m, w, msg, write]

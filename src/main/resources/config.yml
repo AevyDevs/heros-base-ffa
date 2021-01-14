@@ -1,0 +1,38 @@
+mysql:
+  user: "root"
+  password: "password"
+  table: "table"
+  table_fields:
+    - "username"
+    - "kills"
+    - "deaths"
+    - "streak"
+    - "noDeaths"
+    - "noPings"
+    - "noMsg"
+  table_create_fields:
+    - "username CHAR(16) NOT NULL"
+    - "kills INTEGER UNSIGNED"
+    - "deaths INTEGER UNSIGNED"
+    - "streak INTEGER UNSIGNED"
+    - "noDeaths INTEGER UNSIGNED"
+    - "noPings INTEGER UNSIGNED"
+    - "noMsg INTEGER UNSIGNED"
+    - "PRIMARY KEY(username)"
+  database: "ffa"
+  ip: "localhost"
+  port: "3306"
+  save_every: 18000
+worlds:
+  - "world"
+combat_duration: 6000
+alwaysday:
+  set_time: 6000
+  repeat_every: 1200
+actionbar:
+  messages:
+    - "&bIP del nostro TeamSpeak: &fts.herospvp.net"
+    - "&4&lRICORDA! &cIl mouse-abuse non e' consentito!"
+    - "&6Gestisci le tue notifiche con /notifiche"
+  repeat_every: 1200
+  duration: 200
