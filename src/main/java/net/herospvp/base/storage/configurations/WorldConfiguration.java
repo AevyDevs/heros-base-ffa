@@ -8,8 +8,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import java.util.Arrays;
-
 public class WorldConfiguration {
 
     private final Base instance;

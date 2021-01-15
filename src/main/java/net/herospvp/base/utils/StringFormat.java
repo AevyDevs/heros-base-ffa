@@ -1,11 +1,8 @@
 package net.herospvp.base.utils;
 
-import lombok.SneakyThrows;
 import net.herospvp.base.Base;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-
-import javax.management.InstanceNotFoundException;
 
 public class StringFormat {
 
@@ -31,12 +28,9 @@ public class StringFormat {
         String string = null;
         if (object instanceof Player) {
             string = ((Player) object).getName();
-            System.out.println("PLAYER: " + string);
         } else if (object instanceof String) {
             string = (String) object;
-            System.out.println("STRING: " + string);
         }
-        System.out.println("NULL!!!!!!");
         return string;
     }
 

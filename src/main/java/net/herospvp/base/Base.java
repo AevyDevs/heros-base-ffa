@@ -22,9 +22,11 @@ import net.herospvp.database.Musician;
 import net.herospvp.database.items.Instrument;
 import net.milkbowl.vault.chat.Chat;
 import org.bukkit.Bukkit;
+import org.bukkit.Sound;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 public class Base extends JavaPlugin {
@@ -57,6 +59,12 @@ public class Base extends JavaPlugin {
     private CombatEvents combatEvents;
     @Getter
     private PlayerEvents playerEvents;
+    @Getter
+    private String serverVersion;
+    @Getter
+    private Sound sound;
+    @Getter @Setter
+    private boolean loaded;
 
     @Override
     public void onEnable() {
@@ -82,6 +90,9 @@ public class Base extends JavaPlugin {
         // giving the instrument to the director with a name
         director.addInstrument("guitar", guitar);
 
+        // load string formatter
+        stringFormat = new StringFormat(this);
+
         // creating a new musician and giving the instrument
         // this counts as a new Thread(), this musician can only play() this instrument (so it can only use
         // one mysql connection)
@@ -104,11 +115,53 @@ public class Base extends JavaPlugin {
         //
 
         //
+        // START REFLECTIONS FOR SOUNDS
+        //
+
+        String string = getServer().getClass().getPackage().getName();
+        String[] split = string.split("\\.");
+
+        if (!(split.length > 0)) {
+            getLogger().severe("An error occured while loading Reflections!");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        String versionSuffix = split[split.length - 1];
+
+        if (!versionSuffix.startsWith("v")) {
+            getLogger().severe("An error occured while loading Reflections! (Could not find version suffix)");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        getLogger().info("Reflections loaded. Version: " + versionSuffix);
+        serverVersion = versionSuffix;
+
+        try {
+            if (instance.getServerVersion().contains("1_8")) {
+                Class aClass = Class.forName("org.bukkit.Sound");
+                int i = 0;
+                for (Object soundEnum : aClass.getEnumConstants()) {
+                    if (soundEnum.toString().contains("CAT_MEOW")) {
+                        break;
+                    }
+                    i++;
+                }
+                sound = (Sound) aClass.getEnumConstants()[i];
+            } else {
+                sound = Sound.ENTITY_CAT_AMBIENT;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //
+        // END REFLECTIONS FOR SOUNDS
+        //
+
+        //
         // START EVENTS AND EXPANSIONS RELATED
         //
 
-        // load string formatted for Vault
-        stringFormat = new StringFormat(this);
         // register Vault chat grab
         RegisteredServiceProvider<Chat> rsp = Bukkit.getServer().getServicesManager().getRegistration(Chat.class);
         chat = rsp.getProvider();
@@ -131,7 +184,14 @@ public class Base extends JavaPlugin {
         placeholderAPI.addStats("kills", playerName -> String.valueOf(bank.getKills(playerName)));
         placeholderAPI.addStats("deaths", playerName -> String.valueOf(bank.getDeaths(playerName)));
         placeholderAPI.addStats("ks", playerName -> String.valueOf(bank.getStreak(playerName)));
-        placeholderAPI.addStats("kd", playerName -> String.valueOf(bank.getKills(playerName) / bank.getDeaths(playerName)));
+        placeholderAPI.addStats("kd", playerName -> {
+            DecimalFormat decimalFormat = new DecimalFormat("0.00");
+            long deaths = bank.getDeaths(playerName);
+
+            return String.valueOf(decimalFormat.format(
+                    (float) bank.getKills(playerName) / (float) (deaths == 0 ? 1 : deaths))
+            );
+        });
 
         //
         // END EVENTS AND EXPANSIONS RELATED

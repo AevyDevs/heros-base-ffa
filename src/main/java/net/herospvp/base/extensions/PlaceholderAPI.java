@@ -4,7 +4,6 @@ import lombok.Getter;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import net.herospvp.base.Base;
 import net.herospvp.base.utils.lambdas.PlaceholderAPILambda;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 

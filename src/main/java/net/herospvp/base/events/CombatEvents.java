@@ -11,12 +11,13 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-public class CombatEvents {
+public class CombatEvents implements Listener {
 
     private final Base instance;
     private final Bank bank;
@@ -31,6 +32,7 @@ public class CombatEvents {
         this.cc = instance.getCombatConfigurations();
         this.wc = instance.getWorldConfiguration();
         this.combatEventsLambda = combatEventsLambda;
+        instance.getServer().getPluginManager().registerEvents(this, instance);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -48,7 +50,7 @@ public class CombatEvents {
     @EventHandler(priority = EventPriority.LOWEST)
     public void on(EntityDamageByEntityEvent event) {
 
-        if (!(event.getEntity() instanceof Player || event.getDamager() instanceof Player)) {
+        if (!(event.getEntity() instanceof Player && event.getDamager() instanceof Player)) {
             event.setCancelled(true);
             return;
         }

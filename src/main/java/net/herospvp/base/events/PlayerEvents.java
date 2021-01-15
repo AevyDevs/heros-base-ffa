@@ -10,13 +10,13 @@ import net.herospvp.base.utils.StringFormat;
 import net.herospvp.base.utils.lambdas.SpawnLambda;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.*;
 
-public class PlayerEvents {
+public class PlayerEvents implements Listener {
 
     private final Base instance;
     private final StringFormat stringFormat;
@@ -25,6 +25,7 @@ public class PlayerEvents {
     private final WorldConfiguration wc;
     @Getter @Setter
     private SpawnLambda spawnLambda;
+    private final String serverVersion;
 
     public PlayerEvents(Base instance, SpawnLambda spawnLambda) {
         this.instance = instance;
@@ -33,6 +34,8 @@ public class PlayerEvents {
         this.cc = instance.getCombatConfigurations();
         this.wc = instance.getWorldConfiguration();
         this.spawnLambda = spawnLambda;
+        this.serverVersion = instance.getServerVersion();
+        instance.getServer().getPluginManager().registerEvents(this, instance);
     }
 
     @EventHandler
@@ -48,6 +51,14 @@ public class PlayerEvents {
     @EventHandler
     public void on(PlayerPickupItemEvent event) {
         event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void on(AsyncPlayerPreLoginEvent event) {
+        if (!instance.isLoaded()) {
+            event.setLoginResult(AsyncPlayerPreLoginEvent.Result.KICK_OTHER);
+            event.setKickMessage(ChatColor.RED + "Il server e' in fase di caricamento, riprova tra poco!");
+        }
     }
 
     @EventHandler(priority = EventPriority.LOW)
@@ -96,7 +107,7 @@ public class PlayerEvents {
     @EventHandler(priority = EventPriority.LOWEST)
     public void on(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
-        int kills = bank.getKills(player);
+        long kills = bank.getKills(player);
 
         String string = stringFormat.color(player, ChatColor.GRAY);
 
@@ -123,17 +134,22 @@ public class PlayerEvents {
         }
 
         event.setFormat(string);
-        if (player.hasPermission("base.*")) {
+        if (player.hasPermission("base.color")) {
             event.setMessage(stringFormat.translate(event.getMessage()));
+        }
+
+        if (instance.getServerVersion() == null) {
+            return;
         }
 
         for (String s : event.getMessage().split(" ")) {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 if (!p.getName().equalsIgnoreCase(s) || !bank.wantsPings(p)) continue;
-                p.playSound(p.getLocation(), Sound.ENTITY_CAT_PURREOW, 1, 1);
+                p.playSound(p.getLocation(), instance.getSound(), 1, 1);
                 return;
             }
         }
+
     }
 
 }

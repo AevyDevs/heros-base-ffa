@@ -55,7 +55,7 @@ public class Bank {
 
     public void addDeaths(Object object, int howMany) {
         String string = stringFormat.convert(object);
-        storedPlayers.get(string)[1] = getStreak(string) + howMany;
+        storedPlayers.get(string)[1] = getDeaths(string) + howMany;
     }
 
     public void addStreak(Object object, int howMany) {
@@ -63,16 +63,16 @@ public class Bank {
         storedPlayers.get(string)[2] = getStreak(string) + howMany;
     }
 
-    public int getKills(Object object) {
-        return (int) storedPlayers.get(stringFormat.convert(object))[0];
+    public long getKills(Object object) {
+        return (long) storedPlayers.get(stringFormat.convert(object))[0];
     }
 
-    public int getDeaths(Object object) {
-        return (int) storedPlayers.get(stringFormat.convert(object))[1];
+    public long getDeaths(Object object) {
+        return (long) storedPlayers.get(stringFormat.convert(object))[1];
     }
 
-    public int getStreak(Object object) {
-        return (int) storedPlayers.get(stringFormat.convert(object))[2];
+    public long getStreak(Object object) {
+        return (long) storedPlayers.get(stringFormat.convert(object))[2];
     }
 
     public boolean wantsDeaths(Object object) {
@@ -92,7 +92,7 @@ public class Bank {
 
     public void changePingsIdea(Player player) { storedPlayers.get(player.getName())[4] = !wantsPings(player); }
 
-    public void changeMsgIdea(Player player) { storedPlayers.get(player.getName())[5] = !wantsPings(player); }
+    public void changeMsgIdea(Player player) { storedPlayers.get(player.getName())[5] = !wantsMsg(player); }
 
 
     public boolean isOnline(String playerName) { return onlinePlayers.contains(playerName); }
@@ -126,6 +126,8 @@ public class Bank {
 
                     storedPlayers.put(playerName, objects);
                 }
+                instance.setLoaded(true);
+                System.out.println("[BaseFFA] Players may now join the server!");
 
             } catch (Exception e) {
                 e.printStackTrace();
