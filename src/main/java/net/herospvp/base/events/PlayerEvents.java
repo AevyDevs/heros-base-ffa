@@ -61,7 +61,7 @@ public class PlayerEvents implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.LOW)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void on(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 

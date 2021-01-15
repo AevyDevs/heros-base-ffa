@@ -43,7 +43,7 @@ public class Bank {
 
     public void newEntry(Player player) {
         if (!getStoredPlayers().containsKey(player.getName())) {
-            storedPlayers.put(player.getName(), new Object[6]);
+            storedPlayers.put(player.getName(), new Object[] {0, 0, 0, true, true, true});
         }
     }
 
@@ -63,16 +63,16 @@ public class Bank {
         storedPlayers.get(string)[2] = getStreak(string) + howMany;
     }
 
-    public long getKills(Object object) {
-        return (long) storedPlayers.get(stringFormat.convert(object))[0];
+    public int getKills(Object object) {
+        return (int) storedPlayers.get(stringFormat.convert(object))[0];
     }
 
-    public long getDeaths(Object object) {
-        return (long) storedPlayers.get(stringFormat.convert(object))[1];
+    public int getDeaths(Object object) {
+        return (int) storedPlayers.get(stringFormat.convert(object))[1];
     }
 
-    public long getStreak(Object object) {
-        return (long) storedPlayers.get(stringFormat.convert(object))[2];
+    public int getStreak(Object object) {
+        return (int) storedPlayers.get(stringFormat.convert(object))[2];
     }
 
     public boolean wantsDeaths(Object object) {
