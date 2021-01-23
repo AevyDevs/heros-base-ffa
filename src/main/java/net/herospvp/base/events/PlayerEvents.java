@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.*;
 
 public class PlayerEvents implements Listener {
@@ -36,6 +37,12 @@ public class PlayerEvents implements Listener {
         this.spawnLambda = spawnLambda;
         this.serverVersion = instance.getServerVersion();
         instance.getServer().getPluginManager().registerEvents(this, instance);
+    }
+
+    @EventHandler
+    public void on(FoodLevelChangeEvent event) {
+        event.setCancelled(true);
+        event.setFoodLevel(20);
     }
 
     @EventHandler

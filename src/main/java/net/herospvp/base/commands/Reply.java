@@ -50,7 +50,7 @@ public class Reply implements CommandExecutor {
 
         StringBuilder stringBuilder = new StringBuilder();
         for (String string : strings) {
-            stringBuilder.append(string);
+            stringBuilder.append(string).append(" ");
         }
 
         target.sendMessage(stringFormat.translate("&6(/r) DA: " + player.getName() + " &7» &o"

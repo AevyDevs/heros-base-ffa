@@ -56,7 +56,7 @@ public class Message implements CommandExecutor {
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < strings.length; i++) {
             if (i == 0) continue;
-            stringBuilder.append(strings[i]);
+            stringBuilder.append(strings[i]).append(" ");
         }
 
         target.sendMessage(stringFormat.translate("&6(/m) DA: " + player.getName() + " &7» &o"

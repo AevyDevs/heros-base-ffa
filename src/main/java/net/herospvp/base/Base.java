@@ -2,10 +2,7 @@ package net.herospvp.base;
 
 import lombok.Getter;
 import lombok.Setter;
-import net.herospvp.base.commands.Message;
-import net.herospvp.base.commands.Notifiche;
-import net.herospvp.base.commands.Reply;
-import net.herospvp.base.commands.Spawn;
+import net.herospvp.base.commands.*;
 import net.herospvp.base.events.CombatEvents;
 import net.herospvp.base.events.PlayerEvents;
 import net.herospvp.base.events.WorldEvents;
@@ -27,7 +24,11 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Base extends JavaPlugin {
 
@@ -82,10 +83,21 @@ public class Base extends JavaPlugin {
         // creating a new director (so it can store instruments)
         director = new Director();
 
+        Map<String, String> map = new HashMap<>();
+        map.put("cacheCallableStmts", "true");
+        map.put("metadataCacheSize", "152");
+        map.put("maintainTimeStats", "false");
+        map.put("rewriteBatchedStatements", "true");
+        map.put("ha.loadBalanceStrategy", "bestResponseTime");
+        map.put("useServerPrepStmts", "true");
+        map.put("holdResultsOpenOverStatementClose", "true");
+        //map.put("useCompression", "true");
+        map.put("tcpKeepAlive", "false");
+
         // creating a new instrument (mysql connection to an ip:port -> database)
         Instrument guitar = new Instrument(getConfigString("mysql.ip"), getConfigString("mysql.port"),
                 getConfigString("mysql.user"), getConfigString("mysql.password"), getConfigString("mysql.database"),
-                "?useSSL=false&characterEncoding=utf8", null, true, 1);
+                "?useSSL=false&characterEncoding=utf8", map, true, 2);
 
         // giving the instrument to the director with a name
         director.addInstrument("guitar", guitar);
@@ -96,16 +108,16 @@ public class Base extends JavaPlugin {
         // creating a new musician and giving the instrument
         // this counts as a new Thread(), this musician can only play() this instrument (so it can only use
         // one mysql connection)
-        startStopMusician = new Musician(guitar);
+        startStopMusician = new Musician(director, guitar, true);
 
         // creating a second musician, this allows to not have any errors if a double play() is called
-        tasksMusician = new Musician(guitar);
+        tasksMusician = new Musician(director, guitar, true);
 
         // creating a new Bank so it can store every bit of information needed for this core
         bank = new Bank(this);
 
         // updating the mirror in the Musician-Thread so it can execute the lambdas later on
-        startStopMusician.updateMirror(bank.init());
+        startStopMusician.update(bank.init());
 
         // executing the lambdas to init Bank.class datastructures
         startStopMusician.play();
@@ -170,7 +182,8 @@ public class Base extends JavaPlugin {
         combatConfigurations = new CombatConfigurations(this, getConfigLong("combat_duration"));
 
         // getting and setting up worlds with optional multiple spawn-points
-        worldConfiguration = new WorldConfiguration(this, getConfigArray("worlds"), 60000, 50);
+        worldConfiguration = new WorldConfiguration(this, getConfigArray("worlds.list"),
+                getConfigInt("worlds.change_every"), 50);
 
         // loading events
         // the lambda here can be replaced on-the-fly, so it can do more operations such as giving a kit etc.
@@ -187,10 +200,14 @@ public class Base extends JavaPlugin {
         placeholderAPI.addStats("kd", playerName -> {
             DecimalFormat decimalFormat = new DecimalFormat("0.00");
             long deaths = bank.getDeaths(playerName);
-
             return String.valueOf(decimalFormat.format(
                     (float) bank.getKills(playerName) / (float) (deaths == 0 ? 1 : deaths))
             );
+        });
+        placeholderAPI.addStats("map", playerName -> {
+            Date date = new Date(worldConfiguration.getTimeRemaining());
+            SimpleDateFormat format = new SimpleDateFormat("mm:ss");
+            return format.format(date);
         });
 
         //
@@ -208,6 +225,7 @@ public class Base extends JavaPlugin {
         new Reply(this);
         new Notifiche(this);
         new Message(this);
+        new ForceSave(this);
 
         // loading tasks
         new AlwaysDay(this, getConfigInt("alwaysday.repeat_every"), getConfigInt("alwaysday.set_time"));
@@ -223,9 +241,11 @@ public class Base extends JavaPlugin {
     @Override
     public void onDisable() {
         // updating mirror for saving data
-        startStopMusician.updateMirror(bank.save());
+        startStopMusician.update(bank.save());
         // saving data
         startStopMusician.play();
+        // gently shutdown threads
+        director.endShow();
     }
 
     private String getConfigString(String string) {

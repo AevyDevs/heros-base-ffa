@@ -1,5 +1,5 @@
 name: BaseFFA
-version: 2.0.1
+version: 2.2.0-SNAPSHOT
 author: Sorridi
 main: net.herospvp.base.Base
 load: POSTWORLD
@@ -8,6 +8,8 @@ depend:
   - Vault
   - ActionBarAPI
 commands:
+  forcesave:
+    permission: base.*
   spawn:
   notifiche:
     aliases: [not]

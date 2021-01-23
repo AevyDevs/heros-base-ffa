@@ -39,9 +39,7 @@ public class CombatEvents implements Listener {
     public void on(PlayerCommandPreprocessEvent event) {
         Player player = event.getPlayer();
 
-        if (cc.isOutOfCombat(player)) {
-            return;
-        }
+        if (cc.isOutOfCombat(player)) return;
 
         player.sendMessage(ChatColor.RED + "Non puoi eseguire comandi in combattimento!");
         event.setCancelled(true);
@@ -80,20 +78,16 @@ public class CombatEvents implements Listener {
         event.setDeathMessage(null);
         event.getDrops().clear();
 
-        if (cc.isOutOfCombat(player)) {
-            return;
-        }
+        if (cc.isOutOfCombat(player)) return;
 
         Player killer = cc.getLastHitters().get(player);
 
-        if (killer == null) {
-            return;
-        }
+        if (killer == null) return;
 
         bank.addKills(killer, 1);
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            if (!bank.wantsDeaths(onlinePlayer) && player != onlinePlayer) continue;
+            if (!bank.wantsDeaths(onlinePlayer) && player == onlinePlayer) continue;
             onlinePlayer.sendMessage(ChatColor.RED + player.getName() + " e' stato ucciso da " +
                     killer.getName());
         }

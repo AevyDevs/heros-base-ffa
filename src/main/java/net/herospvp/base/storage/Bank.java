@@ -5,6 +5,7 @@ import net.herospvp.base.Base;
 import net.herospvp.base.utils.StringFormat;
 import net.herospvp.database.items.Notes;
 import net.herospvp.database.items.Papers;
+import org.bukkit.Note;
 import org.bukkit.entity.Player;
 
 import java.sql.PreparedStatement;
@@ -18,6 +19,7 @@ public class Bank {
 
     private final Base instance;
     private final StringFormat stringFormat;
+    private final Notes notes;
 
     @Getter
     private final String table;
@@ -39,6 +41,7 @@ public class Bank {
         this.storedPlayers = new HashMap<>();
         this.lastMessages = new HashMap<>();
         this.stringFormat = instance.getStringFormat();
+        this.notes = new Notes(table);
     }
 
     public void newEntry(Player player) {
@@ -56,6 +59,7 @@ public class Bank {
     public void addDeaths(Object object, int howMany) {
         String string = stringFormat.convert(object);
         storedPlayers.get(string)[1] = getDeaths(string) + howMany;
+        storedPlayers.get(string)[2] = 0;
     }
 
     public void addStreak(Object object, int howMany) {
@@ -105,12 +109,12 @@ public class Bank {
             try {
 
                 preparedStatement = connection.prepareStatement(
-                        new Notes(table).createTable(instance.getTableCreateFields())
+                        notes.createTable(instance.getTableCreateFields())
                 );
                 preparedStatement.execute();
 
                 preparedStatement = connection.prepareStatement(
-                        new Notes(table).selectAll()
+                        notes.selectAll()
                 );
                 resultSet = preparedStatement.executeQuery();
 
@@ -126,14 +130,13 @@ public class Bank {
 
                     storedPlayers.put(playerName, objects);
                 }
-                instance.setLoaded(true);
-                System.out.println("[BaseFFA] Players may now join the server!");
-
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
                 instrument.close(null, preparedStatement, resultSet);
             }
+            instance.setLoaded(true);
+            System.out.println("[BaseFFA] Players may now join the server!");
         });
     }
 
@@ -146,25 +149,20 @@ public class Bank {
                     String playerName = entry.getKey();
                     Object[] objects = entry.getValue();
 
+                    Object[] newObjects = new Object[7];
+                    newObjects[1] = playerName;
+
+                    System.arraycopy(objects, 0, newObjects, 1, objects.length);
+
                     preparedStatement = connection.prepareStatement(
-                            new Notes(table).selectWhere("username", playerName)
+                            notes.insertIfNotExist(fieldsOfTable, newObjects, "username", playerName)
                     );
-                    resultSet = preparedStatement.executeQuery();
 
-                    if (!resultSet.next())
-                        preparedStatement = connection.prepareStatement(
-                                new Notes(table).insert(fieldsOfTable, objects)
-                        );
-                    else {
-                        String[] var = Arrays.copyOfRange(fieldsOfTable, 1, fieldsOfTable.length - 1);
-
-                        preparedStatement = connection.prepareStatement(
-                                new Notes(table).update(var, objects, "username", playerName)
-                        );
-                    }
-
-                    preparedStatement.executeUpdate();
+                    preparedStatement.addBatch();
                 }
+                if (preparedStatement != null)
+                    preparedStatement.executeBatch();
+
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {

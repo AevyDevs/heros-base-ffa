@@ -8,6 +8,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.weather.ThunderChangeEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
@@ -19,6 +20,11 @@ public class WorldEvents implements Listener {
     public WorldEvents(Base instance) {
         this.instance = instance;
         instance.getServer().getPluginManager().registerEvents(this, instance);
+    }
+
+    @EventHandler
+    public void on(CreatureSpawnEvent event) {
+        event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)

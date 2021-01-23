@@ -7,24 +7,26 @@ mysql:
     - "kills"
     - "deaths"
     - "streak"
-    - "noDeaths"
-    - "noPings"
-    - "noMsg"
+    - "deaths"
+    - "pings"
+    - "msg"
   table_create_fields:
     - "username CHAR(16) NOT NULL"
-    - "kills INTEGER UNSIGNED"
-    - "deaths INTEGER UNSIGNED"
-    - "streak INTEGER UNSIGNED"
-    - "noDeaths INTEGER UNSIGNED"
-    - "noPings INTEGER UNSIGNED"
-    - "noMsg INTEGER UNSIGNED"
+    - "kills INTEGER"
+    - "deaths INTEGER"
+    - "streak INTEGER"
+    - "deaths INTEGER"
+    - "pings INTEGER"
+    - "msg INTEGER"
     - "PRIMARY KEY(username)"
   database: "ffa"
   ip: "localhost"
   port: "3306"
   save_every: 18000
 worlds:
-  - "world"
+  change_every: 1200
+  list:
+    - "world"
 combat_duration: 6000
 alwaysday:
   set_time: 6000

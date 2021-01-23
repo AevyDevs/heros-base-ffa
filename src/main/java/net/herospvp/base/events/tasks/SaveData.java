@@ -22,7 +22,7 @@ public class SaveData {
 
         Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, () -> {
 
-            tasksMusician.updateMirror(bank.save());
+            tasksMusician.update(bank.save());
             tasksMusician.play();
 
         }, repeatEvery, repeatEvery);
