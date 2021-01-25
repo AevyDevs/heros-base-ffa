@@ -5,15 +5,14 @@ import net.herospvp.base.Base;
 import net.herospvp.base.utils.StringFormat;
 import net.herospvp.database.items.Notes;
 import net.herospvp.database.items.Papers;
+import org.bukkit.Bukkit;
 import org.bukkit.Note;
 import org.bukkit.entity.Player;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeSet;
+import java.sql.SQLException;
+import java.util.*;
 
 public class Bank {
 
@@ -31,6 +30,8 @@ public class Bank {
     @Getter // 0 = kills, 1 = deaths, 2 = streak, 3 = noDeaths, 4 = noPings, 5 = noMsg
     private final Map<String, Object[]> storedPlayers;
     @Getter
+    private final TreeSet<String> playersToModify;
+    @Getter
     private final Map<Player, Player> lastMessages;
 
     public Bank(Base instance) {
@@ -40,14 +41,17 @@ public class Bank {
         this.onlinePlayers = new TreeSet<>();
         this.storedPlayers = new HashMap<>();
         this.lastMessages = new HashMap<>();
+        this.playersToModify = new TreeSet<>();
         this.stringFormat = instance.getStringFormat();
         this.notes = new Notes(table);
     }
 
     public void newEntry(Player player) {
-        if (!getStoredPlayers().containsKey(player.getName())) {
-            storedPlayers.put(player.getName(), new Object[] {0, 0, 0, true, true, true});
+        String playerName = player.getName();
+        if (!storedPlayers.containsKey(playerName)) {
+            storedPlayers.put(playerName, new Object[] { 0, 0, 0, true, true, true });
         }
+        playersToModify.add(playerName);
     }
 
     public void addKills(Object object, int howMany) {
@@ -91,6 +95,8 @@ public class Bank {
         return (boolean) storedPlayers.get(stringFormat.convert(object))[5];
     }
 
+    public boolean toModify(String playerName) { return playersToModify.contains(playerName); }
+
 
     public void changeDeathsIdea(Player player) { storedPlayers.get(player.getName())[3] = !wantsDeaths(player); }
 
@@ -120,14 +126,14 @@ public class Bank {
 
                 while (resultSet.next()) {
                     String playerName = resultSet.getString(1);
-                    Object[] objects = new Object[6];
+                    Object[] objects = new Object[7];
 
                     int j = 0;
                     for (int i = 2; i < 8; i++) {
                         objects[j] = resultSet.getObject(i);
                         j++;
                     }
-
+                    objects[6] = false;
                     storedPlayers.put(playerName, objects);
                 }
             } catch (Exception e) {
@@ -135,38 +141,62 @@ public class Bank {
             } finally {
                 instrument.close(null, preparedStatement, resultSet);
             }
-            instance.setLoaded(true);
-            System.out.println("[BaseFFA] Players may now join the server!");
+            if (!instance.isLoaded()) {
+                instance.setLoaded(true);
+                System.out.println("[BaseFFA] Players may now join the server!");
+            }
         });
     }
 
-    public Papers save() {
+    public Papers save(boolean shutdown) {
         return (connection, instrument) -> {
             PreparedStatement preparedStatement = null;
-            ResultSet resultSet = null;
             try {
+                String[] newFields = new String[6];
+                System.arraycopy(fieldsOfTable, 1, newFields, 0, fieldsOfTable.length - 1);
+
+                List<PreparedStatement> preparedStatementList = new ArrayList<>();
+
                 for (Map.Entry<String, Object[]> entry : storedPlayers.entrySet()) {
                     String playerName = entry.getKey();
                     Object[] objects = entry.getValue();
 
+                    if (!toModify(playerName)) continue;
+
                     Object[] newObjects = new Object[7];
                     newObjects[1] = playerName;
-
-                    System.arraycopy(objects, 0, newObjects, 1, objects.length);
+                    System.arraycopy(objects, 0, newObjects, 1, objects.length - 1);
 
                     preparedStatement = connection.prepareStatement(
                             notes.insertIfNotExist(fieldsOfTable, newObjects, "username", playerName)
                     );
-
                     preparedStatement.addBatch();
+
+                    preparedStatementList.add(connection.prepareStatement(
+                            notes.update(newFields, objects, "username", playerName)
+                    ));
                 }
-                if (preparedStatement != null)
+
+                if (preparedStatement != null) {
                     preparedStatement.executeBatch();
+                    for (PreparedStatement statement : preparedStatementList) {
+                        statement.executeUpdate();
+                    }
+                }
+
+                synchronized (instance) {
+                    playersToModify.clear();
+                    for (Player player : Bukkit.getOnlinePlayers()) {
+                        playersToModify.add(player.getName());
+                    }
+                }
 
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
-                instrument.close(null, preparedStatement, resultSet);
+                instrument.close(null, preparedStatement, null);
+                if (shutdown)
+                    instance.getLatch().countDown();
             }
         };
     }

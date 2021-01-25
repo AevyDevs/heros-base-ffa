@@ -1,5 +1,5 @@
 name: BaseFFA
-version: 2.2.0-SNAPSHOT
+version: 2.2.1-SNAPSHOT
 author: Sorridi
 main: net.herospvp.base.Base
 load: POSTWORLD

@@ -20,9 +20,9 @@ public class SaveData {
         this.bank = instance.getBank();
         this.repeatEvery = repeatEvery;
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, () -> {
+        Bukkit.getScheduler().runTaskTimerAsynchronously(instance, () -> {
 
-            tasksMusician.update(bank.save());
+            tasksMusician.update(bank.save(false));
             tasksMusician.play();
 
         }, repeatEvery, repeatEvery);

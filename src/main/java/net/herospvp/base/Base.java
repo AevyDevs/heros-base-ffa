@@ -2,6 +2,7 @@ package net.herospvp.base;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.SneakyThrows;
 import net.herospvp.base.commands.*;
 import net.herospvp.base.events.CombatEvents;
 import net.herospvp.base.events.PlayerEvents;
@@ -29,6 +30,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 public class Base extends JavaPlugin {
 
@@ -66,6 +68,8 @@ public class Base extends JavaPlugin {
     private Sound sound;
     @Getter @Setter
     private boolean loaded;
+    @Getter
+    private CountDownLatch latch;
 
     @Override
     public void onEnable() {
@@ -236,14 +240,19 @@ public class Base extends JavaPlugin {
         //
         // END COMMANDS AND TASKS RELATED
         //
+
+        latch = new CountDownLatch(1);
     }
 
+    @SneakyThrows
     @Override
     public void onDisable() {
         // updating mirror for saving data
-        startStopMusician.update(bank.save());
+        startStopMusician.update(bank.save(true));
         // saving data
         startStopMusician.play();
+        // waiting for database save
+        latch.await();
         // gently shutdown threads
         director.endShow();
     }

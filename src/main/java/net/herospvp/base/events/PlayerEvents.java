@@ -15,6 +15,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 
 public class PlayerEvents implements Listener {
@@ -60,6 +61,13 @@ public class PlayerEvents implements Listener {
         event.setCancelled(true);
     }
 
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void on(PlayerDeathEvent event) {
+        Bukkit.getScheduler().runTaskLater(instance, () -> {
+            event.getEntity().spigot().respawn();
+        }, 3L);
+    }
+
     @EventHandler
     public void on(AsyncPlayerPreLoginEvent event) {
         if (!instance.isLoaded()) {
@@ -79,10 +87,14 @@ public class PlayerEvents implements Listener {
         cc.getCombatTime().put(player, 0L);
         cc.getLastHitters().put(player, null);
 
-        player.teleport(wc.getSpawnPoint());
-
+        if (player.hasPlayedBefore()) {
+            player.teleport(wc.getSpawnPoint());
+        } else {
+            Bukkit.getScheduler().runTaskLater(instance, () -> {
+                player.teleport(wc.getSpawnPoint());
+            }, 10L);
+        }
         spawnLambda.func(player);
-
         event.setJoinMessage(stringFormat.translate("&a(+) &7" + player.getName()));
     }
 

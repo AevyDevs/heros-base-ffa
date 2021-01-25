@@ -24,7 +24,7 @@ public class ForceSave implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
 
-        musician.update(bank.save());
+        musician.update(bank.save(false));
         musician.play();
 
         commandSender.sendMessage(ChatColor.RED + "Salvando...");

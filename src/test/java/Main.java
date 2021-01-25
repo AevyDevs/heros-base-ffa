@@ -1,24 +1,37 @@
 import lombok.SneakyThrows;
-import org.bukkit.entity.Player;
+import org.bukkit.Sound;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.concurrent.CountDownLatch;
 
 public class Main {
 
-    private static long start;
+    static CountDownLatch latch = new CountDownLatch(1);
 
     @SneakyThrows
     public static void main(String[] args) {
-        start = System.currentTimeMillis() - 14000;
-        System.out.println(changeMapIn());
+
+        Thread thread = new Thread(() -> {
+            try {
+                System.out.println("WAITING");
+                latch.await();
+                System.out.println("FINISHED WAITING");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+        thread.start();
+
+        Thread.sleep(5000);
+
+        Thread thread1 = new Thread(() -> {
+            System.out.println("LATCHING");
+            latch.countDown();
+            System.out.println("DONE!");
+        });
+        thread1.start();
+
+        Thread.sleep(5000);
     }
 
-    public static String changeMapIn() {
-        Date date = new Date(180000 - (System.currentTimeMillis() - start));
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("mm:ss");
-        return simpleDateFormat.format(date);
-    }
 
 }
