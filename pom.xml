@@ -6,7 +6,7 @@
 
     <groupId>net.herospvp.base</groupId>
     <artifactId>heros-base-ffa</artifactId>
-    <version>2.2.2-SNAPSHOT</version>
+    <version>2.2.3-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>

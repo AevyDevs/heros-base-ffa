@@ -27,7 +27,7 @@ public class ForceSave implements CommandExecutor {
         musician.update(bank.save(false));
         musician.play();
 
-        commandSender.sendMessage(ChatColor.RED + "Salvando...");
+        commandSender.sendMessage(ChatColor.RED + "[BaseFFA 2.2.3] Salvando...");
 
         return false;
     }

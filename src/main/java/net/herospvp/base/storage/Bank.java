@@ -126,14 +126,13 @@ public class Bank {
 
                 while (resultSet.next()) {
                     String playerName = resultSet.getString(1);
-                    Object[] objects = new Object[7];
+                    Object[] objects = new Object[6];
 
                     int j = 0;
                     for (int i = 2; i < 8; i++) {
                         objects[j] = resultSet.getObject(i);
                         j++;
                     }
-                    objects[6] = false;
                     storedPlayers.put(playerName, objects);
                 }
             } catch (Exception e) {
@@ -164,13 +163,15 @@ public class Bank {
                     if (!toModify(playerName)) continue;
 
                     Object[] newObjects = new Object[7];
-                    newObjects[1] = playerName;
-                    System.arraycopy(objects, 0, newObjects, 1, objects.length - 1);
+                    newObjects[0] = playerName;
+                    System.arraycopy(objects, 0, newObjects, 1, objects.length);
 
                     preparedStatement = connection.prepareStatement(
                             notes.insertIfNotExist(fieldsOfTable, newObjects, "username", playerName)
                     );
                     preparedStatement.addBatch();
+
+                    System.out.println(notes.insertIfNotExist(fieldsOfTable, newObjects, "username", playerName));
 
                     preparedStatementList.add(connection.prepareStatement(
                             notes.update(newFields, objects, "username", playerName)
