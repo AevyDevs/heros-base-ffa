@@ -171,8 +171,6 @@ public class Bank {
                     );
                     preparedStatement.addBatch();
 
-                    System.out.println(notes.insertIfNotExist(fieldsOfTable, newObjects, "username", playerName));
-
                     preparedStatementList.add(connection.prepareStatement(
                             notes.update(newFields, objects, "username", playerName)
                     ));
