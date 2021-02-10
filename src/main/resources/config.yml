@@ -1,28 +1,30 @@
-mysql:
+db:
+  debug: true
   user: "root"
   password: "password"
-  table: "table"
+  database: "ffa"
+  ip: "localhost"
+  port: "3306"
+  table: "ffa"
+  driver: "org.mariadb.jdbc.Driver"
+  url: "mariadb"
   table_fields:
     - "username"
     - "kills"
     - "deaths"
     - "streak"
-    - "deaths"
-    - "pings"
-    - "msg"
+    - "opt_deaths"
+    - "opt_pings"
+    - "opt_msg"
   table_create_fields:
     - "username CHAR(16) NOT NULL"
     - "kills INTEGER"
     - "deaths INTEGER"
     - "streak INTEGER"
-    - "deaths INTEGER"
-    - "pings INTEGER"
-    - "msg INTEGER"
+    - "opt_deaths INTEGER"
+    - "opt_pings INTEGER"
+    - "opt_msg INTEGER"
     - "PRIMARY KEY(username)"
-  database: "ffa"
-  ip: "localhost"
-  port: "3306"
-  save_every: 18000
 worlds:
   change_every: 1200
   list:

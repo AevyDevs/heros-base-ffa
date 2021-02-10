@@ -1,7 +1,8 @@
 package net.herospvp.base.commands;
 
 import net.herospvp.base.Base;
-import net.herospvp.base.storage.Bank;
+import net.herospvp.base.storage.BPlayer;
+import net.herospvp.base.storage.PlayerBank;
 import net.herospvp.base.utils.StringFormat;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -11,14 +12,12 @@ import org.bukkit.entity.Player;
 
 public class Reply implements CommandExecutor {
 
-    private final Base instance;
     private final StringFormat stringFormat;
-    private final Bank bank;
+    private final PlayerBank playerBank;
 
     public Reply(Base instance) {
-        this.instance = instance;
         this.stringFormat = instance.getStringFormat();
-        this.bank = instance.getBank();
+        this.playerBank = instance.getPlayerBank();
         instance.getServer().getPluginCommand("reply").setExecutor(this);
     }
 
@@ -30,20 +29,22 @@ public class Reply implements CommandExecutor {
         }
 
         Player player = ((Player) commandSender).getPlayer();
+        BPlayer bPlayer = playerBank.getBPlayerFrom(player);
 
         if (strings.length == 0) {
             player.sendMessage(ChatColor.RED + "Utilizza /r <messaggio>");
             return false;
         }
 
-        if (bank.getLastMessages().get(player) == null) {
+        if (playerBank.getLastMessages().get(bPlayer) == null) {
             player.sendMessage(ChatColor.RED + "Non hai nessun messaggio recente a cui rispondere!");
             return false;
         }
 
-        Player target = bank.getLastMessages().get(player);
+        BPlayer bTarget = playerBank.getLastMessages().get(bPlayer);
+        Player target = bTarget.getPlayer();
 
-        if (!bank.wantsMsg(target)) {
+        if (!bTarget.isNoMsg()) {
             player.sendMessage(ChatColor.RED + "Mi spiace, " + target.getName() + " ignora i messaggi privati!");
             return false;
         }

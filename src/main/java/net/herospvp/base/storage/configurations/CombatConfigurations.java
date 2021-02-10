@@ -7,18 +7,14 @@ import org.bukkit.entity.Player;
 import java.util.HashMap;
 import java.util.Map;
 
+@Getter
 public class CombatConfigurations {
 
-    private final Base instance;
-    @Getter
     private final long duration;
-    @Getter
     private final Map<Player, Long> combatTime;
-    @Getter
     private final Map<Player, Player> lastHitters;
 
-    public CombatConfigurations(Base instance, long duration) {
-        this.instance = instance;
+    public CombatConfigurations(long duration) {
         this.lastHitters = new HashMap<>();
         this.combatTime = new HashMap<>();
         this.duration = duration;

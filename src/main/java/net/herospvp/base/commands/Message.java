@@ -1,7 +1,8 @@
 package net.herospvp.base.commands;
 
 import net.herospvp.base.Base;
-import net.herospvp.base.storage.Bank;
+import net.herospvp.base.storage.BPlayer;
+import net.herospvp.base.storage.PlayerBank;
 import net.herospvp.base.utils.StringFormat;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -12,14 +13,12 @@ import org.bukkit.entity.Player;
 
 public class Message implements CommandExecutor {
 
-    private final Base instance;
     private final StringFormat stringFormat;
-    private final Bank bank;
+    private final PlayerBank playerBank;
 
     public Message(Base instance) {
-        this.instance = instance;
         this.stringFormat = instance.getStringFormat();
-        this.bank = instance.getBank();
+        this.playerBank = instance.getPlayerBank();
         instance.getServer().getPluginCommand("message").setExecutor(this);
     }
 
@@ -30,20 +29,22 @@ public class Message implements CommandExecutor {
         }
 
         Player player = ((Player) commandSender).getPlayer();
+        BPlayer bPlayer = playerBank.getBPlayerFrom(player);
 
         if (!(strings.length >= 2)) {
             player.sendMessage(ChatColor.RED + "Utilizza /message <player> <messaggio>");
             return false;
         }
 
-        if (!bank.isOnline(strings[0])) {
+        if (!playerBank.getBPlayers().contains(playerBank.getBPlayerFrom(strings[0]))) {
             player.sendMessage(ChatColor.RED + strings[0] + " non e' online!");
             return false;
         }
 
         Player target = Bukkit.getPlayer(strings[0]);
+        BPlayer bTarget = playerBank.getLastMessages().get(bPlayer);
 
-        if (!bank.wantsMsg(target)) {
+        if (!bTarget.isNoMsg()) {
             player.sendMessage(ChatColor.RED + "Mi spiace, " + target.getName() + " ignora i messaggi privati!");
             return false;
         }
@@ -65,7 +66,7 @@ public class Message implements CommandExecutor {
         player.sendMessage(stringFormat.translate("&6(/m) A: " + target.getName() + " &7» &o"
                 + stringBuilder.toString()));
 
-        bank.getLastMessages().replace(target, player);
+        playerBank.getLastMessages().replace(bTarget, bPlayer);
         return false;
     }
 

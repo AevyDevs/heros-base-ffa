@@ -3,6 +3,7 @@ package net.herospvp.base.extensions;
 import lombok.Getter;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import net.herospvp.base.Base;
+import net.herospvp.base.storage.PlayerBank;
 import net.herospvp.base.utils.lambdas.PlaceholderAPILambda;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -12,13 +13,13 @@ import java.util.Map;
 
 public class PlaceholderAPI extends PlaceholderExpansion {
 
-    private final Base instance;
     @Getter
     private final Map<String, PlaceholderAPILambda> retrieveStats;
+    private final PlayerBank playerBank;
 
     public PlaceholderAPI(Base instance) {
-        this.instance = instance;
         this.retrieveStats = new HashMap<>();
+        this.playerBank = instance.getPlayerBank();
         register();
     }
 
@@ -43,7 +44,8 @@ public class PlaceholderAPI extends PlaceholderExpansion {
 
     @Override
     public String onPlaceholderRequest(Player player, @NotNull String params) {
-        return retrieveStats.containsKey(params) ? retrieveStats.get(params).func(player.getName()) : "?";
+        return retrieveStats.containsKey(params) ?
+                retrieveStats.get(params).func(playerBank.getBPlayerFrom(player)) : "?";
     }
 
 }

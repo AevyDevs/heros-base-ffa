@@ -8,7 +8,6 @@ import org.bukkit.Bukkit;
 
 public class ActionbarAnnouncer {
 
-    private final Base instance;
     private final StringFormat stringFormat;
     @Getter
     private final String[] messages;
@@ -17,7 +16,6 @@ public class ActionbarAnnouncer {
     private int counter = 0;
 
     public ActionbarAnnouncer(Base instance, String[] messages, int duration, int repeatEvery) {
-        this.instance = instance;
         this.stringFormat = instance.getStringFormat();
         this.messages = messages;
         this.duration = duration;

@@ -1,13 +1,14 @@
 package net.herospvp.base.events;
 
-import lombok.Getter;
-import lombok.Setter;
 import net.herospvp.base.Base;
-import net.herospvp.base.storage.Bank;
+import net.herospvp.base.events.custom.SpawnEvent;
+import net.herospvp.base.storage.BPlayer;
+import net.herospvp.base.storage.PlayerBank;
 import net.herospvp.base.storage.configurations.CombatConfigurations;
 import net.herospvp.base.storage.configurations.WorldConfiguration;
 import net.herospvp.base.utils.StringFormat;
-import net.herospvp.base.utils.lambdas.SpawnLambda;
+import net.herospvp.database.Musician;
+import net.milkbowl.vault.chat.Chat;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -22,41 +23,38 @@ public class PlayerEvents implements Listener {
 
     private final Base instance;
     private final StringFormat stringFormat;
-    private final Bank bank;
+    private final PlayerBank playerBank;
     private final CombatConfigurations cc;
     private final WorldConfiguration wc;
-    @Getter @Setter
-    private SpawnLambda spawnLambda;
-    private final String serverVersion;
+    private final Musician musician;
 
-    public PlayerEvents(Base instance, SpawnLambda spawnLambda) {
+    public PlayerEvents(Base instance) {
         this.instance = instance;
         this.stringFormat = instance.getStringFormat();
-        this.bank = instance.getBank();
+        this.playerBank = instance.getPlayerBank();
         this.cc = instance.getCombatConfigurations();
         this.wc = instance.getWorldConfiguration();
-        this.spawnLambda = spawnLambda;
-        this.serverVersion = instance.getServerVersion();
+        this.musician = instance.getMusician();
         instance.getServer().getPluginManager().registerEvents(this, instance);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void on(FoodLevelChangeEvent event) {
         event.setCancelled(true);
         event.setFoodLevel(20);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void on(PlayerAchievementAwardedEvent event) {
         event.setCancelled(true);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void on(PlayerDropItemEvent event) {
         event.setCancelled(true);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void on(PlayerPickupItemEvent event) {
         event.setCancelled(true);
     }
@@ -68,42 +66,39 @@ public class PlayerEvents implements Listener {
         }, 3L);
     }
 
-    @EventHandler
-    public void on(AsyncPlayerPreLoginEvent event) {
-        if (!instance.isLoaded()) {
-            event.setLoginResult(AsyncPlayerPreLoginEvent.Result.KICK_OTHER);
-            event.setKickMessage(ChatColor.RED + "Il server e' in fase di caricamento, riprova tra poco!");
-        }
-    }
-
     @EventHandler(priority = EventPriority.MONITOR)
     public void on(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+        BPlayer bPlayer = playerBank.getBPlayerFrom(player);
 
-        bank.newEntry(player);
-        bank.getOnlinePlayers().add(player.getName());
-        bank.getLastMessages().put(player, null);
+        if (bPlayer == null) {
+            musician.update(playerBank.load(player,
+                    () -> playerBank.getLastMessages().put(playerBank.getBPlayerFrom(player), null))
+            );
+            musician.play();
+        }
 
         cc.getCombatTime().put(player, 0L);
         cc.getLastHitters().put(player, null);
 
-        if (player.hasPlayedBefore()) {
+        Bukkit.getScheduler().runTaskLater(instance, () -> {
             player.teleport(wc.getSpawnPoint());
-        } else {
-            Bukkit.getScheduler().runTaskLater(instance, () -> {
-                player.teleport(wc.getSpawnPoint());
-            }, 10L);
-        }
-        spawnLambda.func(player);
+        }, 10L);
+
         event.setJoinMessage(stringFormat.translate("&a(+) &7" + player.getName()));
+
+        instance.getServer().getPluginManager().callEvent(new SpawnEvent(player));
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void on(PlayerQuitEvent event) {
         Player player = event.getPlayer();
+        BPlayer bPlayer = playerBank.getBPlayerFrom(player);
 
-        bank.getOnlinePlayers().remove(player.getName());
-        bank.getLastMessages().remove(player);
+        if (bPlayer.isEdited()) {
+            musician.update(playerBank.save(bPlayer));
+            musician.play();
+        }
 
         Bukkit.getScheduler().runTaskLater(instance, () -> {
             cc.getCombatTime().remove(player);
@@ -120,39 +115,41 @@ public class PlayerEvents implements Listener {
         cc.getLastHitters().replace(player, null);
         cc.getCombatTime().replace(player, 0L);
 
-        spawnLambda.func(player);
+        instance.getServer().getPluginManager().callEvent(new SpawnEvent(player));
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void on(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
-        long kills = bank.getKills(player);
+        BPlayer bPlayer = playerBank.getBPlayerFrom(player);
 
-        String string = stringFormat.color(player, ChatColor.GRAY);
+        long kills = bPlayer.getKills();
+
+        ChatColor chatColor = ChatColor.GRAY;
 
         if (kills >= 100 && kills < 200) {
-            string = stringFormat.color(player, ChatColor.DARK_GRAY);
+            chatColor = ChatColor.DARK_GRAY;
         } else if (kills >= 200 && kills < 300) {
-            string = stringFormat.color(player, ChatColor.AQUA);
+            chatColor = ChatColor.AQUA;
         } else if (kills >= 300 && kills < 400) {
-            string = stringFormat.color(player, ChatColor.BLUE);
+            chatColor = ChatColor.BLUE;
         } else if (kills >= 400 && kills < 500) {
-            string = stringFormat.color(player, ChatColor.GREEN);
+            chatColor = ChatColor.GREEN;
         } else if (kills >= 500 && kills < 600) {
-            string = stringFormat.color(player, ChatColor.DARK_GREEN);
+            chatColor = ChatColor.DARK_GREEN;
         } else if (kills >= 600 && kills < 700) {
-            string = stringFormat.color(player, ChatColor.RED);
+            chatColor = ChatColor.RED;
         } else if (kills >= 700 && kills < 800) {
-            string = stringFormat.color(player, ChatColor.DARK_RED);
+            chatColor = ChatColor.DARK_RED;
         } else if (kills >= 800 && kills < 900) {
-            string = stringFormat.color(player, ChatColor.LIGHT_PURPLE);
+            chatColor = ChatColor.LIGHT_PURPLE;
         } else if (kills >= 900 && kills < 1000) {
-            string = stringFormat.color(player, ChatColor.DARK_PURPLE);
+            chatColor = ChatColor.DARK_PURPLE;
         } else if (kills >= 1000) {
-            string = stringFormat.color(player, ChatColor.YELLOW);
+            chatColor = ChatColor.YELLOW;
         }
 
-        event.setFormat(string);
+        event.setFormat(stringFormat.color(bPlayer, player, chatColor));
         if (player.hasPermission("base.color")) {
             event.setMessage(stringFormat.translate(event.getMessage()));
         }
@@ -163,7 +160,9 @@ public class PlayerEvents implements Listener {
 
         for (String s : event.getMessage().split(" ")) {
             for (Player p : Bukkit.getOnlinePlayers()) {
-                if (!p.getName().equalsIgnoreCase(s) || !bank.wantsPings(p)) continue;
+                if (!p.getName().equalsIgnoreCase(s) || !bPlayer.isNoPings()) {
+                    continue;
+                }
                 p.playSound(p.getLocation(), instance.getSound(), 1, 1);
                 return;
             }

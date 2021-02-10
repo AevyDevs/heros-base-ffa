@@ -1,37 +1,28 @@
 package net.herospvp.base.utils;
 
 import net.herospvp.base.Base;
+import net.herospvp.base.storage.BPlayer;
+import net.herospvp.base.storage.PlayerBank;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 public class StringFormat {
 
     private final Base instance;
+    private final PlayerBank playerBank;
 
     public StringFormat(Base instance) {
         this.instance = instance;
+        this.playerBank = instance.getPlayerBank();
     }
 
     public String translate(String string) {
         return ChatColor.translateAlternateColorCodes('&', string);
     }
 
-    public String color(Player player, ChatColor chatColor) {
-        String playerName = player.getName();
-        String prefix = translate(instance.getChat().getPlayerPrefix(player));
-
-        return translate("&7[&a" + instance.getBank().getKills(playerName) + "&7] "
-                + prefix + chatColor + playerName + " &7» %2$s");
-    }
-
-    public String convert(Object object) {
-        String string = null;
-        if (object instanceof Player) {
-            string = ((Player) object).getName();
-        } else if (object instanceof String) {
-            string = (String) object;
-        }
-        return string;
+    public String color(BPlayer bPlayer, Player player, ChatColor chatColor) {
+        return translate("&7[&a" + bPlayer.getKills() + "&7] " +
+                instance.getChat().getPlayerPrefix(player) + chatColor + player.getName() + " &7» %2$s");
     }
 
 }

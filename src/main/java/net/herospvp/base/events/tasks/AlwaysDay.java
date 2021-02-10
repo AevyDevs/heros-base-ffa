@@ -7,13 +7,11 @@ import org.bukkit.Bukkit;
 
 public class AlwaysDay {
 
-    private final Base instance;
     @Getter
     private final int repeatEvery, setTime;
     private final WorldConfiguration worldConfiguration;
 
     public AlwaysDay(Base instance, int repeatEvery, int setTime) {
-        this.instance = instance;
         this.repeatEvery = repeatEvery;
         this.setTime = setTime;
         this.worldConfiguration = instance.getWorldConfiguration();

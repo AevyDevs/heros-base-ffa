@@ -1,6 +1,7 @@
 package net.herospvp.base.events;
 
 import net.herospvp.base.Base;
+import net.herospvp.base.storage.configurations.WorldConfiguration;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,10 +16,10 @@ import org.bukkit.event.weather.WeatherChangeEvent;
 
 public class WorldEvents implements Listener {
 
-    private final Base instance;
+    private final WorldConfiguration worldConfiguration;
 
     public WorldEvents(Base instance) {
-        this.instance = instance;
+        this.worldConfiguration = instance.getWorldConfiguration();
         instance.getServer().getPluginManager().registerEvents(this, instance);
     }
 
@@ -51,6 +52,9 @@ public class WorldEvents implements Listener {
 
         if (player.getGameMode().equals(GameMode.CREATIVE) &&
                 player.hasPermission("base.*")) return;
+
+        if (event.getBlockPlaced().getLocation().getY() < worldConfiguration.getPvpDisabledOver() &&
+                player.hasPermission("base.place")) return;
 
         event.setCancelled(true);
     }

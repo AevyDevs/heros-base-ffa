@@ -1,7 +1,6 @@
 package net.herospvp.base;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.SneakyThrows;
 import net.herospvp.base.commands.*;
 import net.herospvp.base.events.CombatEvents;
@@ -9,15 +8,15 @@ import net.herospvp.base.events.PlayerEvents;
 import net.herospvp.base.events.WorldEvents;
 import net.herospvp.base.events.tasks.ActionbarAnnouncer;
 import net.herospvp.base.events.tasks.AlwaysDay;
-import net.herospvp.base.events.tasks.SaveData;
 import net.herospvp.base.extensions.PlaceholderAPI;
-import net.herospvp.base.storage.Bank;
+import net.herospvp.base.storage.PlayerBank;
 import net.herospvp.base.storage.configurations.CombatConfigurations;
 import net.herospvp.base.storage.configurations.WorldConfiguration;
 import net.herospvp.base.utils.StringFormat;
 import net.herospvp.database.Director;
 import net.herospvp.database.Musician;
 import net.herospvp.database.items.Instrument;
+import net.herospvp.heroscore.HerosCore;
 import net.milkbowl.vault.chat.Chat;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -27,104 +26,68 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 
+@Getter
 public class Base extends JavaPlugin {
 
-    @Getter
-    private static Base instance;
-    @Getter
+    private HerosCore herosCore;
+    private Base instance;
     private Chat chat;
-    @Getter
     private StringFormat stringFormat;
-    @Getter
     private Director director;
-    @Getter
-    private Musician tasksMusician, startStopMusician;
-    @Getter
+    private Musician musician;
     private String table;
-    @Getter
     private String[] fieldsOfTable, tableCreateFields;
-    @Getter
-    private Bank bank;
-    @Getter
+    private PlayerBank playerBank;
     private PlaceholderAPI placeholderAPI;
-    @Getter
     private WorldConfiguration worldConfiguration;
-    @Getter
     private CombatConfigurations combatConfigurations;
-    @Getter
-    private Spawn spawn;
-    @Getter
-    private CombatEvents combatEvents;
-    @Getter
-    private PlayerEvents playerEvents;
-    @Getter
     private String serverVersion;
-    @Getter
     private Sound sound;
-    @Getter @Setter
-    private boolean loaded;
-    @Getter
-    private CountDownLatch latch;
 
     @Override
     public void onEnable() {
         instance = this;
         saveDefaultConfig();
 
+        herosCore = getPlugin(HerosCore.class);
+
         //
         // START DATABASE RELATED
         //
 
-        table = getConfigString("mysql.table");
-        fieldsOfTable = getConfigList("mysql.table_fields").toArray(new String[0]);
-        tableCreateFields = getConfigList("mysql.table_create_fields").toArray(new String[0]);
-
-        // creating a new director (so it can store instruments)
-        director = new Director();
-
-        Map<String, String> map = new HashMap<>();
-        map.put("cacheCallableStmts", "true");
-        map.put("metadataCacheSize", "152");
-        map.put("maintainTimeStats", "false");
-        map.put("rewriteBatchedStatements", "true");
-        map.put("ha.loadBalanceStrategy", "bestResponseTime");
-        map.put("useServerPrepStmts", "true");
-        map.put("holdResultsOpenOverStatementClose", "true");
-        //map.put("useCompression", "true");
-        map.put("tcpKeepAlive", "false");
+        table = getConfigString("db.table");
+        fieldsOfTable = getConfigList("db.table_fields").toArray(new String[0]);
+        tableCreateFields = getConfigList("db.table_create_fields").toArray(new String[0]);
 
         // creating a new instrument (mysql connection to an ip:port -> database)
-        Instrument guitar = new Instrument(getConfigString("mysql.ip"), getConfigString("mysql.port"),
-                getConfigString("mysql.user"), getConfigString("mysql.password"), getConfigString("mysql.database"),
-                "?useSSL=false&characterEncoding=utf8", map, true, 2);
+        Instrument instrument = new Instrument(
+                null, getConfigString("db.ip"),
+                getConfigString("db.port"), getConfigString("db.database"), getConfigString("db.user"),
+                getConfigString("db.password"), getConfigString("db.url"), getConfigString("db.driver"),
+                null, true, 1
+        );
+        instrument.assemble();
+
+        director = herosCore.getDirector();
 
         // giving the instrument to the director with a name
-        director.addInstrument("guitar", guitar);
+        director.addInstrument("base-ffa", instrument);
 
         // load string formatter
         stringFormat = new StringFormat(this);
 
-        // creating a new musician and giving the instrument
-        // this counts as a new Thread(), this musician can only play() this instrument (so it can only use
-        // one mysql connection)
-        startStopMusician = new Musician(director, guitar, true);
+        musician = herosCore.getMusician();
 
-        // creating a second musician, this allows to not have any errors if a double play() is called
-        tasksMusician = new Musician(director, guitar, true);
-
-        // creating a new Bank so it can store every bit of information needed for this core
-        bank = new Bank(this);
+        // creating a new PlayerBank so it can store every bit of information needed for this core
+        playerBank = new PlayerBank(this);
 
         // updating the mirror in the Musician-Thread so it can execute the lambdas later on
-        startStopMusician.update(bank.init());
+        musician.update(playerBank.startup());
 
-        // executing the lambdas to init Bank.class datastructures
-        startStopMusician.play();
+        // executing the lambdas to init PlayerBank.class datastructures
+        musician.play();
 
         //
         // END DATABASE RELATED
@@ -178,37 +141,35 @@ public class Base extends JavaPlugin {
         // START EVENTS AND EXPANSIONS RELATED
         //
 
-        // register Vault chat grab
-        RegisteredServiceProvider<Chat> rsp = Bukkit.getServer().getServicesManager().getRegistration(Chat.class);
-        chat = rsp.getProvider();
+        // register Vault chat hook
+        getServer().getServicesManager().load(Chat.class);
+        chat = getServer().getServicesManager().getRegistration(Chat.class).getProvider();
 
         // loading combat-tag datastructures
-        combatConfigurations = new CombatConfigurations(this, getConfigLong("combat_duration"));
+        combatConfigurations = new CombatConfigurations(getConfigLong("combat_duration"));
 
         // getting and setting up worlds with optional multiple spawn-points
         worldConfiguration = new WorldConfiguration(this, getConfigArray("worlds.list"),
                 getConfigInt("worlds.change_every"), 50);
 
         // loading events
-        // the lambda here can be replaced on-the-fly, so it can do more operations such as giving a kit etc.
-        playerEvents = new PlayerEvents(this, (player) -> {});
+        new PlayerEvents(this);
         new WorldEvents(this);
-        // the lambda here can be replaced on-the-fly, so it can do more operations such as giving a kit etc.
-        combatEvents = new CombatEvents(this, (player, killer) -> {});
+        new CombatEvents(this);
 
         // load placeholders
         placeholderAPI = new PlaceholderAPI(this);
-        placeholderAPI.addStats("kills", playerName -> String.valueOf(bank.getKills(playerName)));
-        placeholderAPI.addStats("deaths", playerName -> String.valueOf(bank.getDeaths(playerName)));
-        placeholderAPI.addStats("ks", playerName -> String.valueOf(bank.getStreak(playerName)));
-        placeholderAPI.addStats("kd", playerName -> {
+        placeholderAPI.addStats("kills", bPlayer -> String.valueOf(bPlayer.getKills()));
+        placeholderAPI.addStats("deaths", bPlayer -> String.valueOf(bPlayer.getDeaths()));
+        placeholderAPI.addStats("ks", bPlayer -> String.valueOf(bPlayer.getStreak()));
+        placeholderAPI.addStats("kd", bPlayer -> {
             DecimalFormat decimalFormat = new DecimalFormat("0.00");
-            long deaths = bank.getDeaths(playerName);
+            long deaths = bPlayer.getDeaths();
             return String.valueOf(decimalFormat.format(
-                    (float) bank.getKills(playerName) / (float) (deaths == 0 ? 1 : deaths))
+                    (float) bPlayer.getKills() / (float) (deaths == 0 ? 1 : deaths))
             );
         });
-        placeholderAPI.addStats("map", playerName -> {
+        placeholderAPI.addStats("map", bPlayer -> {
             Date date = new Date(worldConfiguration.getTimeRemaining());
             SimpleDateFormat format = new SimpleDateFormat("mm:ss");
             return format.format(date);
@@ -223,7 +184,7 @@ public class Base extends JavaPlugin {
         //
 
         // the lambda here can be replaced on-the-fly, so it can do more operations such as giving a kit etc.
-        spawn = new Spawn(this, (player) -> {});
+        new Spawn(this);
 
         // loading commands
         new Reply(this);
@@ -235,26 +196,19 @@ public class Base extends JavaPlugin {
         new AlwaysDay(this, getConfigInt("alwaysday.repeat_every"), getConfigInt("alwaysday.set_time"));
         new ActionbarAnnouncer(this, getConfigArray("actionbar.messages"),
                 getConfigInt("actionbar.duration"), getConfigInt("actionbar.repeat_every"));
-        new SaveData(this, getConfigInt("mysql.save_every"));
 
         //
         // END COMMANDS AND TASKS RELATED
         //
-
-        latch = new CountDownLatch(1);
     }
 
     @SneakyThrows
     @Override
     public void onDisable() {
         // updating mirror for saving data
-        startStopMusician.update(bank.save(true));
+        playerBank.saveAll();
         // saving data
-        startStopMusician.play();
-        // waiting for database save
-        latch.await();
-        // gently shutdown threads
-        director.endShow();
+        musician.play();
     }
 
     private String getConfigString(String string) {
@@ -288,6 +242,5 @@ public class Base extends JavaPlugin {
 
         return strings;
     }
-    
-    
+
 }

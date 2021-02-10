@@ -1,9 +1,9 @@
 name: BaseFFA
-version: 2.2.3-SNAPSHOT
+version: 2.3.0-SNAPSHOT
 author: Sorridi
 main: net.herospvp.base.Base
-load: POSTWORLD
 depend:
+  - heros-core
   - PlaceholderAPI
   - Vault
   - ActionBarAPI

@@ -1,11 +1,11 @@
 package net.herospvp.base.events;
 
-import lombok.Setter;
 import net.herospvp.base.Base;
-import net.herospvp.base.storage.Bank;
+import net.herospvp.base.events.custom.CombatKillEvent;
+import net.herospvp.base.storage.BPlayer;
+import net.herospvp.base.storage.PlayerBank;
 import net.herospvp.base.storage.configurations.CombatConfigurations;
 import net.herospvp.base.storage.configurations.WorldConfiguration;
-import net.herospvp.base.utils.lambdas.CombatEventsLambda;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -20,18 +20,15 @@ import org.bukkit.event.player.PlayerQuitEvent;
 public class CombatEvents implements Listener {
 
     private final Base instance;
-    private final Bank bank;
+    private final PlayerBank playerBank;
     private final CombatConfigurations cc;
     private final WorldConfiguration wc;
-    @Setter
-    private CombatEventsLambda combatEventsLambda;
 
-    public CombatEvents(Base instance, CombatEventsLambda combatEventsLambda) {
+    public CombatEvents(Base instance) {
         this.instance = instance;
-        this.bank = instance.getBank();
+        this.playerBank = instance.getPlayerBank();
         this.cc = instance.getCombatConfigurations();
         this.wc = instance.getWorldConfiguration();
-        this.combatEventsLambda = combatEventsLambda;
         instance.getServer().getPluginManager().registerEvents(this, instance);
     }
 
@@ -70,29 +67,29 @@ public class CombatEvents implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void on(PlayerDeathEvent event) {
         Player player = event.getEntity();
-
-        bank.addDeaths(player, 1);
+        BPlayer bVictim = playerBank.getBPlayerFrom(player);
+        bVictim.addDeaths(1);
+        bVictim.setEdited(true);
 
         player.getWorld().strikeLightningEffect(player.getLocation());
 
         event.setDeathMessage(null);
         event.getDrops().clear();
 
-        if (cc.isOutOfCombat(player)) return;
+        if (cc.isOutOfCombat(player) || cc.getLastHitters().get(player) == null) return;
 
         Player killer = cc.getLastHitters().get(player);
-
-        if (killer == null) return;
-
-        bank.addKills(killer, 1);
+        BPlayer bKiller = playerBank.getBPlayerFrom(killer);
+        bKiller.addKills(1);
+        bKiller.setEdited(true);
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            if (!bank.wantsDeaths(onlinePlayer) && player == onlinePlayer) continue;
+            if (!playerBank.getBPlayerFrom(onlinePlayer).isNoDeaths() && player == onlinePlayer) continue;
             onlinePlayer.sendMessage(ChatColor.RED + player.getName() + " e' stato ucciso da " +
                     killer.getName());
         }
 
-        combatEventsLambda.func(player, killer);
+        instance.getServer().getPluginManager().callEvent(new CombatKillEvent(player, killer));
     }
 
     @EventHandler(priority = EventPriority.LOW)

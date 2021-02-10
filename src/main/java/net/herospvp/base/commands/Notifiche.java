@@ -1,7 +1,8 @@
 package net.herospvp.base.commands;
 
 import net.herospvp.base.Base;
-import net.herospvp.base.storage.Bank;
+import net.herospvp.base.storage.BPlayer;
+import net.herospvp.base.storage.PlayerBank;
 import net.herospvp.base.utils.StringFormat;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -10,14 +11,12 @@ import org.bukkit.entity.Player;
 
 public class Notifiche implements CommandExecutor {
 
-    private final Base instance;
     private final StringFormat stringFormat;
-    private final Bank bank;
+    private final PlayerBank playerBank;
 
     public Notifiche(Base instance) {
-        this.instance = instance;
         this.stringFormat = instance.getStringFormat();
-        this.bank = instance.getBank();
+        this.playerBank = instance.getPlayerBank();
         instance.getServer().getPluginCommand("notifiche").setExecutor(this);
     }
 
@@ -29,40 +28,44 @@ public class Notifiche implements CommandExecutor {
         }
 
         Player player = ((Player) commandSender).getPlayer();
+        BPlayer bPlayer = playerBank.getBPlayerFrom(player);
 
         if (strings.length != 1) {
             player.sendMessage(stringFormat.translate("\n&cLe tue notifiche:"));
             player.sendMessage(stringFormat.translate("&81 » &7Messaggi privati: "
-                    + (!bank.wantsMsg(player) ? "&cOFF" : "&aON")));
+                    + (!bPlayer.isNoMsg() ? "&cOFF" : "&aON")));
             player.sendMessage(stringFormat.translate("&82 » &7Messaggi di morte: "
-                    + (!bank.wantsDeaths(player) ? "&cOFF" : "&aON")));
+                    + (!bPlayer.isNoDeaths() ? "&cOFF" : "&aON")));
             player.sendMessage(stringFormat.translate("&83 » &7Menzioni in chat: "
-                    + (!bank.wantsPings(player) ? "&cOFF" : "&aON") + "\n"));
+                    + (!bPlayer.isNoPings() ? "&cOFF" : "&aON") + "\n"));
 
-            player.sendMessage(stringFormat.translate("\n&cGestisci le tue notifiche con /notifiche <1/2/3>"));
+            player.sendMessage(stringFormat.translate("\n&cGestisci le tue notifiche con /notifiche <messaggi/morti/menzioni>"));
         } else {
             switch (strings[0]) {
-                case "1":
-                    bank.changeMsgIdea(player);
+                case "messaggi":
+                    bPlayer.changeMsgIdea();
+                    bPlayer.setEdited(true);
                     break;
-                case "2":
-                    bank.changeDeathsIdea(player);
+                case "morti":
+                    bPlayer.changeDeathsIdea();
+                    bPlayer.setEdited(true);
                     break;
-                case "3":
-                    bank.changePingsIdea(player);
+                case "menzioni":
+                    bPlayer.changePingsIdea();
+                    bPlayer.setEdited(true);
                     break;
                 default:
-                    player.sendMessage(stringFormat.translate("\n&cGestisci le tue notifiche con /notifiche <1/2/3>"));
+                    player.sendMessage(stringFormat.translate("\n&cGestisci le tue notifiche con /notifiche <messaggi/morti/menzioni>"));
                     return false;
             }
 
             player.sendMessage(stringFormat.translate("\n&cLe tue notifiche:"));
             player.sendMessage(stringFormat.translate("&81 » &7Messaggi privati: "
-                    + (!bank.wantsMsg(player) ? "&cOFF" : "&aON")));
+                    + (!bPlayer.isNoMsg() ? "&cOFF" : "&aON")));
             player.sendMessage(stringFormat.translate("&82 » &7Messaggi di morte: "
-                    + (!bank.wantsDeaths(player) ? "&cOFF" : "&aON")));
+                    + (!bPlayer.isNoDeaths() ? "&cOFF" : "&aON")));
             player.sendMessage(stringFormat.translate("&83 » &7Menzioni in chat: "
-                    + (!bank.wantsPings(player) ? "&cOFF" : "&aON") + "\n"));
+                    + (!bPlayer.isNoPings() ? "&cOFF" : "&aON") + "\n"));
         }
 
         return false;

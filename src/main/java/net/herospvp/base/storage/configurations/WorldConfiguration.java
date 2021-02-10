@@ -3,31 +3,25 @@ package net.herospvp.base.storage.configurations;
 import lombok.Getter;
 import lombok.Setter;
 import net.herospvp.base.Base;
+import net.herospvp.base.events.custom.MapChangeEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
+@Getter
 public class WorldConfiguration {
 
-    private final Base instance;
-    @Getter
     private Location spawnPoint;
-    @Getter
     private final World[] worlds;
     private int counter = 0;
-    @Getter @Setter
+    @Setter
     private int repeatEvery, pvpDisabledOver;
-    @Getter
     private long timeRemaining;
 
     public WorldConfiguration(Base instance, String[] strings, int repeatEvery, int pvpDisabledOver) {
 
-        this.instance = instance;
         this.repeatEvery = repeatEvery;
         this.pvpDisabledOver = pvpDisabledOver;
 
@@ -50,13 +44,16 @@ public class WorldConfiguration {
                     player.sendMessage(ChatColor.RED + "Cambio mappa in: " + timeRemaining / 1000 + "s");
                 }
             } else if (timeRemaining == 0) {
-                counter = counter == worlds.length - 1 ? 0 : counter + 1;
+                World oldWorld = worlds[counter];
 
+                counter = counter == worlds.length - 1 ? 0 : counter + 1;
                 spawnPoint = worlds[counter].getSpawnLocation();
 
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     player.teleport(spawnPoint);
                 }
+
+                instance.getServer().getPluginManager().callEvent(new MapChangeEvent(worlds[counter], oldWorld));
             }
 
         }, 0L, 20L);
