@@ -3,6 +3,7 @@ package net.herospvp.base.extensions;
 import lombok.Getter;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import net.herospvp.base.Base;
+import net.herospvp.base.storage.BPlayer;
 import net.herospvp.base.storage.PlayerBank;
 import net.herospvp.base.utils.lambdas.PlaceholderAPILambda;
 import org.bukkit.entity.Player;
@@ -44,8 +45,13 @@ public class PlaceholderAPI extends PlaceholderExpansion {
 
     @Override
     public String onPlaceholderRequest(Player player, @NotNull String params) {
-        return retrieveStats.containsKey(params) ?
-                retrieveStats.get(params).func(playerBank.getBPlayerFrom(player)) : "?";
+
+        BPlayer bPlayer = playerBank.getBPlayerFrom(player);
+        if (bPlayer == null) {
+            return "Caricando...";
+        }
+
+        return retrieveStats.containsKey(params) ? retrieveStats.get(params).func(bPlayer) : "?";
     }
 
 }

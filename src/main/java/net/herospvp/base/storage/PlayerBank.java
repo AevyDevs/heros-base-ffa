@@ -112,6 +112,8 @@ public class PlayerBank {
         return (connection, instrument) -> {
             PreparedStatement preparedStatement = null;
             try {
+                if (!bPlayer.isEdited()) return;
+
                 preparedStatement = connection.prepareStatement(
                         notes.update(cleanFieldsOfTable,
                                 new Object[] { bPlayer.getKills(), bPlayer.getDeaths(),
@@ -122,14 +124,19 @@ public class PlayerBank {
                 );
                 preparedStatement.executeUpdate();
 
-                synchronized (bPlayer) {
-                    bPlayer.setEdited(false);
-                }
-
             } catch (SQLException e) {
                 e.printStackTrace();
             } finally {
                 instrument.close(preparedStatement);
+
+                synchronized (bPlayers) {
+                    bPlayers.remove(bPlayer);
+                }
+
+                synchronized (lastMessages) {
+                    lastMessages.remove(bPlayer);
+                }
+
             }
         };
     }
@@ -156,15 +163,6 @@ public class PlayerBank {
             }
         }
         return null;
-    }
-
-    public boolean isOnline(String playerName) {
-        for (BPlayer player : bPlayers) {
-            if (player.getPlayer().getName().equalsIgnoreCase(playerName)) {
-                return true;
-            }
-        }
-        return false;
     }
 
 }

@@ -76,6 +76,8 @@ public class PlayerEvents implements Listener {
                     () -> playerBank.getLastMessages().put(playerBank.getBPlayerFrom(player), null))
             );
             musician.play();
+        } else {
+            playerBank.getLastMessages().put(bPlayer, null);
         }
 
         cc.getCombatTime().put(player, 0L);
@@ -95,10 +97,8 @@ public class PlayerEvents implements Listener {
         Player player = event.getPlayer();
         BPlayer bPlayer = playerBank.getBPlayerFrom(player);
 
-        if (bPlayer.isEdited()) {
-            musician.update(playerBank.save(bPlayer));
-            musician.play();
-        }
+        musician.update(playerBank.save(bPlayer));
+        musician.play();
 
         Bukkit.getScheduler().runTaskLater(instance, () -> {
             cc.getCombatTime().remove(player);

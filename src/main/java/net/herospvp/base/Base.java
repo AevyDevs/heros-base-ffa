@@ -18,9 +18,7 @@ import net.herospvp.database.Musician;
 import net.herospvp.database.items.Instrument;
 import net.herospvp.heroscore.HerosCore;
 import net.milkbowl.vault.chat.Chat;
-import org.bukkit.Bukkit;
 import org.bukkit.Sound;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.text.DecimalFormat;
@@ -184,13 +182,13 @@ public class Base extends JavaPlugin {
         //
 
         // the lambda here can be replaced on-the-fly, so it can do more operations such as giving a kit etc.
-        new Spawn(this);
+        new SpawnCommand(this);
 
         // loading commands
-        new Reply(this);
-        new Notifiche(this);
-        new Message(this);
-        new ForceSave(this);
+        new ReplyCommand(this);
+        new NotificheCommand(this);
+        new MessageCommand(this);
+        new ForceSaveCommand(this);
 
         // loading tasks
         new AlwaysDay(this, getConfigInt("alwaysday.repeat_every"), getConfigInt("alwaysday.set_time"));
