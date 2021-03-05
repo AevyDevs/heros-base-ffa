@@ -1,0 +1,42 @@
+db:
+  debug: true
+  user: "root"
+  password: "password"
+  database: "ffa"
+  ip: "localhost"
+  port: "3306"
+  table: "ffa"
+  driver: "org.mariadb.jdbc.Driver"
+  url: "mariadb"
+  table_fields:
+    - "username"
+    - "kills"
+    - "deaths"
+    - "streak"
+    - "opt_deaths"
+    - "opt_pings"
+    - "opt_msg"
+  table_create_fields:
+    - "username CHAR(16) NOT NULL"
+    - "kills INTEGER"
+    - "deaths INTEGER"
+    - "streak INTEGER"
+    - "opt_deaths INTEGER"
+    - "opt_pings INTEGER"
+    - "opt_msg INTEGER"
+    - "PRIMARY KEY(username)"
+worlds:
+  change_every: 120000
+  list:
+    - "world"
+combat_duration: 6000
+alwaysday:
+  set_time: 6000
+  repeat_every: 1200
+actionbar:
+  messages:
+    - "&bIP del nostro TeamSpeak: &fts.herospvp.net"
+    - "&4&lRICORDA! &cIl mouse-abuse non e' consentito!"
+    - "&6Gestisci le tue notifiche con /notifiche"
+  repeat_every: 1200
+  duration: 200

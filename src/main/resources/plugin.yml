@@ -1,0 +1,17 @@
+name: BaseFFA
+version: ${project.version}
+author: Sorridi
+main: net.herospvp.base.Base
+depend:
+  - heros-core
+  - PlaceholderAPI
+  - Vault
+  - ActionBarAPI
+commands:
+  spawn:
+  notifiche:
+    aliases: [not]
+  reply:
+    aliases: [r]
+  message:
+    aliases: [m, w, msg, write]
