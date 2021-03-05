@@ -68,9 +68,6 @@ public class Base extends JavaPlugin {
 
         director = herosCore.getDirector();
 
-        // giving the instrument to the director with a name
-        director.addInstrument("base-ffa", instrument);
-
         // load string formatter
         stringFormat = new StringFormat(this);
 
