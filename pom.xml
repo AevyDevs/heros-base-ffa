@@ -6,7 +6,7 @@
 
     <groupId>net.herospvp</groupId>
     <artifactId>heros-base-ffa</artifactId>
-    <version>2.3.3-SNAPSHOT</version>
+    <version>2.3.4-SNAPSHOT</version>
 
     <name>heros-base-ffa</name>
 
@@ -102,6 +102,13 @@
             <groupId>com.github.HerosDevs</groupId>
             <artifactId>database-lib</artifactId>
             <version>1.4.5-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>actionbar-api</groupId>
+            <artifactId>ActionBarAPI</artifactId>
+            <version>1.5.4</version>
+            <systemPath>${basedir}/libs/ActionBarAPI-1.5.4.jar</systemPath>
+            <scope>system</scope>
         </dependency>
     </dependencies>
 </project>

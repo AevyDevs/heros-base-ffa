@@ -1,4 +1,4 @@
-name: BaseFFA
+name: heros-base-ffa
 version: ${project.version}
 author: Sorridi
 main: net.herospvp.base.Base
